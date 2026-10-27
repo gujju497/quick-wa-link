@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Direct WhatsApp Chat & Link Generator - Free Without Saving Number</title>
+  <meta name="description" content="Send WhatsApp messages directly without saving phone numbers. Generate instant click-to-chat links and free scannable QR codes.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- QR Code Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col items-center p-4 sm:p-8">
+
+  <header class="max-w-lg w-full text-center mb-6">
+    <div class="inline-block p-3 bg-emerald-100 text-emerald-700 rounded-2xl mb-3 shadow-sm">
+      <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.03 14.69 2 12.04 2M12.05 3.67C14.25 3.67 16.31 4.53 17.87 6.09C19.42 7.65 20.28 9.72 20.28 11.92C20.28 16.46 16.58 20.15 12.04 20.15C10.56 20.15 9.11 19.76 7.85 19L7.55 18.83L4.43 19.65L5.26 16.61L5.06 16.29C4.24 14.99 3.8 13.47 3.8 11.91C3.81 7.37 7.5 3.67 12.05 3.67Z"/>
+      </svg>
+    </div>
+    <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Direct WhatsApp Chat</h1>
+    <p class="text-sm text-slate-600 mt-1">Open chats or generate click-to-chat links without saving contact numbers.</p>
+  </header>
+
+  <main class="max-w-lg w-full bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
+    
+    <!-- Phone Input -->
+    <div>
+      <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Phone Number (With Country Code)</label>
+      <div class="flex gap-2">
+        <input type="text" id="countryCode" value="91" placeholder="Country" class="w-24 p-3 bg-slate-50 border border-slate-300 rounded-xl text-center font-semibold focus:ring-2 focus:ring-emerald-500 outline-none">
+        <input type="tel" id="phoneNumber" placeholder="e.g. 9876543210" class="flex-1 p-3 bg-slate-50 border border-slate-300 rounded-xl font-medium focus:ring-2 focus:ring-emerald-500 outline-none">
+      </div>
+      <span class="text-xs text-slate-400 mt-1 block">Do not include '+' or '-' signs.</span>
+    </div>
+
+    <!-- Optional Message -->
+    <div>
+      <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Pre-filled Message (Optional)</label>
+      <textarea id="message" rows="3" placeholder="Hello! I'm reaching out regarding..." class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-medium focus:ring-2 focus:ring-emerald-500 outline-none"></textarea>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+      <button id="openBtn" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md shadow-emerald-200 flex items-center justify-center gap-2 transition active:scale-95">
+        Open Chat Directly
+      </button>
+      <button id="copyBtn" class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl border border-slate-200 flex items-center justify-center gap-2 transition active:scale-95">
+        Copy Link
+      </button>
+    </div>
+
+    <!-- QR Section -->
+    <div id="qrContainer" class="hidden pt-6 border-t border-slate-100 flex flex-col items-center">
+      <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Scan to open on phone</p>
+      <div id="qrcode" class="p-3 bg-white border border-slate-200 rounded-2xl shadow-sm"></div>
+    </div>
+
+  </main>
+
+  <footer class="mt-8 text-center text-xs text-slate-400">
+    Clean client-side tool. No numbers are stored or tracked.
+  </footer>
+
+  <script>
+    const countryCode = document.getElementById('countryCode');
+    const phoneNumber = document.getElementById('phoneNumber');
+    const message = document.getElementById('message');
+    const openBtn = document.getElementById('openBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const qrContainer = document.getElementById('qrContainer');
+    const qrDiv = document.getElementById('qrcode');
+    let qrInstance = null;
+
+    function getCleanURL() {
+      const code = countryCode.value.replace(/[^0-9]/g, '');
+      const number = phoneNumber.value.replace(/[^0-9]/g, '');
+      if (!number) return null;
+      
+      const fullPhone = `${code}${number}`;
+      const msg = encodeURIComponent(message.value.trim());
+      return msg ? `https://wa.me/${fullPhone}?text=${msg}` : `https://wa.me/${fullPhone}`;
+    }
+
+    function updateQR(url) {
+      if (!url) {
+        qrContainer.classList.add('hidden');
+        return;
+      }
+      qrContainer.classList.remove('hidden');
+      qrDiv.innerHTML = '';
+      qrInstance = new QRCode(qrDiv, {
+        text: url,
+        width: 140,
+        height: 140,
+        colorDark: "#0f172a",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    }
+
+    openBtn.addEventListener('click', () => {
+      const url = getCleanURL();
+      if (!url) {
+        alert('Please enter a valid phone number.');
+        return;
+      }
+      window.open(url, '_blank');
+      updateQR(url);
+    });
+
+    copyBtn.addEventListener('click', () => {
+      const url = getCleanURL();
+      if (!url) {
+        alert('Please enter a valid phone number.');
+        return;
+      }
+      navigator.clipboard.writeText(url).then(() => {
+        const originalText = copyBtn.textContent;
+        copyBtn.textContent = 'Copied!';
+        copyBtn.classList.add('bg-emerald-50', 'text-emerald-700');
+        setTimeout(() => {
+          copyBtn.textContent = originalText;
+          copyBtn.classList.remove('bg-emerald-50', 'text-emerald-700');
+        }, 1800);
+      });
+      updateQR(url);
+    });
+
+    phoneNumber.addEventListener('input', () => {
+      const url = getCleanURL();
+      if (url && phoneNumber.value.length >= 9) {
+        updateQR(url);
+      }
+    });
+  </script>
+</body>
+</html>
